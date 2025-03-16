@@ -1,0 +1,13 @@
+Changelog for UserLinkAccess
+
+0.0.1-alpha - 2025-03-15
+
+- First package UserLinkAccess version.
+- Temporary access links generating system for resources' pages.
+- AJAX-processor for creating links.
+- Connector with csrf-token verification.
+- Plugin for handle link-access, snippets, hooks
+- Frontend: tpl, js, css
+
+
+

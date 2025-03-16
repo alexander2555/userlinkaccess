@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model package="userlinkaccess" baseClass="xPDO\Om\xPDOObject" platform="mysql" defaultEngine="InnoDB" version="3.0">
+    <object class="UserLinkAccessLink" table="userlinkaccess_links" extends="xPDO\Om\xPDOSimpleObject">
+        <field key="user_id" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" />
+        <field key="resource_id" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" />
+        <field key="hash" dbtype="varchar" precision="32" phptype="string" null="false" />
+        <field key="created_by" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" />
+        <field key="created_at" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" />
+        <field key="expires_at" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" />
+        <field key="is_active" dbtype="tinyint" precision="1" attributes="unsigned" phptype="integer" null="false" default="1" />
+        <field key="used" dbtype="tinyint" precision="1" attributes="unsigned" phptype="integer" null="false" default="0" />
+
+        <index alias="hash" name="hash" primary="false" unique="true" type="BTREE">
+            <column key="hash" length="" collation="A" null="false" />
+        </index>
+        <index alias="user_id" name="user_id" primary="false" unique="false" type="BTREE">
+            <column key="user_id" length="" collation="A" null="false" />
+        </index>
+        <index alias="resource_id" name="resource_id" primary="false" unique="false" type="BTREE">
+            <column key="resource_id" length="" collation="A" null="false" />
+        </index>
+        <index alias="expires_at" name="expires_at" primary="false" unique="false" type="BTREE">
+            <column key="expires_at" length="" collation="A" null="false" />
+        </index>
+
+        <aggregate alias="User" class="MODX\Revolution\modUser" local="user_id" foreign="id" cardinality="one" owner="foreign" />
+        <aggregate alias="Resource" class="MODX\Revolution\modResource" local="resource_id" foreign="id" cardinality="one" owner="foreign" />
+        <aggregate alias="Creator" class="MODX\Revolution\modUser" local="created_by" foreign="id" cardinality="one" owner="foreign" />
+    </object>
+</model>
