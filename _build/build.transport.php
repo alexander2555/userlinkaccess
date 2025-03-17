@@ -46,8 +46,11 @@ $modx->log(\MODX\Revolution\modX::LOG_LEVEL_INFO, 'Строим модель ...
 $manager = $modx->getManager();
 $generator = $manager->getGenerator();
 
-// Удаляем старую модель
-rrmdir($sources['model'] . PKG_NAME_LOWER . '/mysql');
+// Удаляем старую модель, если присутствует
+$mysql_dir = $sources['model'] . PKG_NAME_LOWER . '/mysql';
+if (!file_exists($mysql_dir)) {
+    rrmdir($mysql_dir);
+}
 
 // Генерируем новую модель
 $generator->parseSchema(

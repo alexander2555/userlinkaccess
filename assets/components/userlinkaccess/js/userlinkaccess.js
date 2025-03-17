@@ -155,7 +155,7 @@
           <div class="input-group mb-2">
             <input id="userlinkaccess-link" type="text" class="form-control" value="${link}" readonly>
             <button id="userlinkaccess-copy-btn" class="btn btn-primary" type="button">
-              <i class="bi bi-clipboard"></i>
+              <i class="bi bi-copy"></i>
             </button>
           </div>
           <div class="text-muted small">Ссылка будет действительна в течение выбранного времени</div>

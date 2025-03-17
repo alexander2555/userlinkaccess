@@ -18,8 +18,8 @@ if ($object->xpdo) {
         case xPDOTransport::ACTION_UPGRADE:
             // Создаем таблицу
             $modelPath = $modx->getOption('userlinkaccess.core_path', null, $modx->getOption('core_path') . 'components/userlinkaccess/') . 'model/';
-            $modx->log(\MODX\Revolution\modX::LOG_LEVEL_INFO, 'Загрузка пакета из ' . $modelPath);
-            $modx->addPackage('userlinkaccess', MODX_CORE_PATH . 'components/userlinkaccess/model/', null, 'userlinkaccess\\');
+            // $modx->log(\MODX\Revolution\modX::LOG_LEVEL_INFO, 'Загрузка пакета из ' . $modelPath);
+            // $modx->addPackage('userlinkaccess', MODX_CORE_PATH . 'components/userlinkaccess/model/', null, 'userlinkaccess\\');
 
             $manager = $modx->getManager();
 
