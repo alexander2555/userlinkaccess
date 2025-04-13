@@ -75,7 +75,6 @@ class UserLinkAccess {
             'is_active' => 1,
             'expires_at:>' => time(),
         ]);
-
         if ($activeLinks >= $maxUsers) {
             $this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccess] Превышен лимит временных пользователей для ресурса #' . $resourceId);
             return false;
@@ -161,24 +160,24 @@ class UserLinkAccess {
                     return false;
                 }
                 
-                // // ACL для контекста
-                // $accessContext = $this->modx->newObject('MODX\Revolution\modAccessContext');
-                // $accessContext->set('principal', $tempUserGroup->get('id'));
-                // $accessContext->set('principal_class', 'MODX\Revolution\modUserGroup');
-                // $accessContext->set('target', $this->config['contextAccess']);
-                // $accessContext->set('policy', $this->config['accessPolicy']);
-                // $accessContext->set('authority', 9999);
-                // $accessContext->save();
+                // ACL для контекста
+                $accessContext = $this->modx->newObject('MODX\Revolution\modAccessContext');
+                $accessContext->set('principal', $tempUserGroup->get('id'));
+                $accessContext->set('principal_class', 'MODX\Revolution\modUserGroup');
+                $accessContext->set('target', $this->config['contextAccess']);
+                $accessContext->set('policy', $this->config['accessPolicy']);
+                $accessContext->set('authority', 9999);
+                $accessContext->save();
                 
-                // // ACL для группы ресурсов
-                // $accessResourceGroup = $this->modx->newObject('MODX\Revolution\modAccessResourceGroup');
-                // $accessResourceGroup->set('principal', $tempUserGroup->get('id'));
-                // $accessResourceGroup->set('principal_class', 'MODX\Revolution\modUserGroup');
-                // $accessResourceGroup->set('target', $resourceGroup['id']);
-                // $accessResourceGroup->set('context_key', $this->config['contextAccess']);
-                // $accessResourceGroup->set('policy', $this->config['accessPolicy']);
-                // $accessResourceGroup->set('authority', 9999);
-                // $accessResourceGroup->save();
+                // ACL для группы ресурсов
+                $accessResourceGroup = $this->modx->newObject('MODX\Revolution\modAccessResourceGroup');
+                $accessResourceGroup->set('principal', $tempUserGroup->get('id'));
+                $accessResourceGroup->set('principal_class', 'MODX\Revolution\modUserGroup');
+                $accessResourceGroup->set('target', $resourceGroup['id']);
+                $accessResourceGroup->set('context_key', $this->config['contextAccess']);
+                $accessResourceGroup->set('policy', $this->config['accessPolicy']);
+                $accessResourceGroup->set('authority', 9999);
+                $accessResourceGroup->save();
             }
             
             // Добавляем пользователя в группу временного доступа
@@ -202,7 +201,7 @@ class UserLinkAccess {
         $tempLink->set('created_at', time());
         $tempLink->set('expires_at', $expireTime);
         $tempLink->set('is_active', 1);
-        $tempLink->set('used', 0);
+        $tempLink->set('used', '');
         // $tempLink->set('max_users', $maxUsers);
 
         if (!$tempLink->save()) {
@@ -242,109 +241,146 @@ class UserLinkAccess {
      * @param string $hash Хэш ссылки
      * @return bool Результат активации
      */
-    public function activateLink($hash) {
+    public function activateLink($hash, $requestInfo) {
         // Находим ссылку по хешу
         $tempLink = $this->modx->getObject('userlinkaccess\\UserLinkAccessLink', [
             'hash' => $hash,
             'is_active' => 1,
             'expires_at:>' => time(),
         ]);
-        $this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccess] Вход по ссылке - хеш: ' . $hash);
-
         if (!$tempLink) {
             $this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccess] Временная ссылка не найдена или устарела - хеш: ' . $hash);
             return false;
         }
 
-        // Проверяем, не используется ли уже ссылка
-        if ($tempLink->get('used') == 0) {
-          // Отмечаем ссылку как используемую
-          $tempLink->set('used', 1);
-          $tempLink->save();
-        } else {
-          // $this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccess] Ссылка уже была использована: ' . $hash);
-          // return false;
+        // Проверяем IP-адрес
+        $usedIp = $tempLink->get('used');
+        if (!empty($usedIp)) {
+            $currentIp = $requestInfo['IP'];
+            
+            // Если в сохраненном IP есть маска *.
+            if (strpos($usedIp, '.*') !== false) {
+                $usedIpPrefix = str_replace('.*', '', $usedIp);
+                if (strpos($currentIp, $usedIpPrefix) !== 0) {
+                    $this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccess] Попытка доступа из другой подсети: ' . $currentIp . ' (разрешено: ' . $usedIp . ')');
+                    return false;
+                }
+            } 
+            // Для публичных IP проверяем точное совпадение
+            else if ($usedIp !== $currentIp) {
+                $this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccess] Попытка доступа с другого IP-адреса: ' . $currentIp . ' (разрешено: ' . $usedIp . ')');
+                return false;
+            }
         }
-
-      // Авторизуем пользователя
-      $user = $this->modx->getObject('MODX\Revolution\modUser', $tempLink->get('user_id'));
-      if (!$user) {
-          $this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccess] Пользователь не найден для ссылки: ' . $hash);
-          return false;
-      }
-      // Получаем профиль пользователя
-      $userProfile = $user->getOne('Profile');
-      if (!$userProfile) {
-          $this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccess] Профиль пользователя не найден для ID: ' . $user->get('id'));
-          return false;
-      }
-
-      // Устанавливаем время жизни сессии
-      $lifetime = $tempLink->get('expires_at') - time();
-      
-      // Регенерируем ID сессии для безопасности
-      if (session_id()) {
-          session_regenerate_id(true);
-      }
-      
-      // Получаем хеш-соль для паролей
-      $hashRequest = $this->modx->runProcessor('security/user/get', ['id' => $user->get('id')]);
-      $userObject = $hashRequest->getObject();
-      
-      // Создаем временный пароль для авторизации
-      $tempPass = uniqid('p_');
-      $originalHash = $user->get('password'); // текущий пароль
-      
-      // Устанавливаем временный пароль
-      $user->set('password', $tempPass);
-      $user->save();
-        
-      // Подготовка данных для процессора авторизации
-      $loginData = [
-          'username' => $user->get('username'),
-          'password' => $tempPass,
-          'login_context' => $this->config['contextAccess'],
-          'add_contexts' => '',
-          'rememberme' => true,
-          'skipPasswordCheck' => true // Пропускаем проверку пароля
-      ];
-
-      // Обновляем последнее время входа пользователя
-      $userProfile->set('lastlogin', time());
-      $userProfile->save();
-
-      try {
-        // Запускаем процессор авторизации
-        $response = $this->modx->runProcessor('security/login', $loginData);
-        
-        // Проверяем результат
-        if ($response->isError()) {
-            $this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccess] Ошибка авторизации через процессор: ' . $response->getMessage());
-            // Дополнительное логирование для отладки
-            $this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccess] Данные авторизации: ' . print_r($loginData, true));
+        // Проверяем User-Agent на боты и не-браузеры
+        $userAgent = $requestInfo['User-Agent'];
+        if (preg_match('/(bot|crawler|spider|wget|curl|postman|python|java|php|ruby|unknown)/i', $userAgent)) {
+            $this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccess] Попытка доступа по ссылке не из браузера: ' . $userAgent);
             return false;
         }
-        
-        // Если авторизация успешна - перенаправляем на нужный ресурс
-        $resourceId = $tempLink->get('resource_id');
-        $this->modx->sendRedirect($this->modx->makeUrl($resourceId, '', [], 'full'));
-        return true;
-        
-      } catch (\Exception $e) {
-        $this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccess] Исключение при авторизации: ' . $e->getMessage());
-        
-        return false;
-      }
+        // Если IP еще не сохранен, сохраняем его
+        if (empty($usedIp)) {
+            $ip = $requestInfo['IP'];
+            
+            // Определяем, является ли IP адрес частным
+            $isPrivateNetwork = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE) === false;
+            
+            if ($isPrivateNetwork) {
+                // Для частных IP берем первые три октета
+                $ipParts = explode('.', $ip);
+                if (count($ipParts) === 4) {
+                    $ip = implode('.', array_slice($ipParts, 0, 3)) . '.*';
+                }
+            }
+            // Для публичных IP используем полный адрес
+            
+            $this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_INFO, '[UserLinkAccess] Доступ по ссылке для IP: ' . $ip . ' (original: ' . $requestInfo['IP'] . ')');
+            $tempLink->set('used', $ip);
+            $tempLink->save();
+        }
+
+				// Авторизуем пользователя
+				$user = $this->modx->getObject('MODX\Revolution\modUser', $tempLink->get('user_id'));
+				if (!$user) {
+						$this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccess] Пользователь не найден для ссылки: ' . $hash);
+						return false;
+				}
+				// Получаем профиль пользователя
+				$userProfile = $user->getOne('Profile');
+				if (!$userProfile) {
+						$this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccess] Профиль пользователя не найден для ID: ' . $user->get('id'));
+						return false;
+				}
+
+				// Устанавливаем время жизни сессии
+				$lifetime = $tempLink->get('expires_at') - time();
+				// Регенерируем ID сессии для безопасности
+				if (session_id()) {
+						session_regenerate_id(true);
+				}
+				// Получаем хеш-соль для паролей
+				$hashRequest = $this->modx->runProcessor('security/user/get', ['id' => $user->get('id')]);
+				$userObject = $hashRequest->getObject();
+				
+				// Создаем временный пароль для авторизации
+				$tempPass = uniqid('p_');
+				$originalHash = $user->get('password'); // текущий пароль
+				
+				// Устанавливаем временный пароль
+				$user->set('password', $tempPass);
+				$user->save();
+					
+				// Подготовка данных для процессора авторизации
+				$loginData = [
+						'username' => $user->get('username'),
+						'password' => $tempPass,
+						'login_context' => $this->config['contextAccess'],
+						'add_contexts' => '',
+						'rememberme' => true,
+						'skipPasswordCheck' => true // Пропускаем проверку пароля
+				];
+
+				// Обновляем последнее время входа пользователя
+				$userProfile->set('lastlogin', time());
+				$userProfile->save();
+
+				try {
+					// Запускаем процессор авторизации
+					$response = $this->modx->runProcessor('security/login', $loginData);
+					
+					// Проверяем результат
+					if ($response->isError()) {
+							$this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccess] Ошибка авторизации через процессор: ' . $response->getMessage());
+							// Дополнительное логирование для отладки
+							$this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccess] Данные авторизации: ' . print_r($loginData, true));
+							return false;
+					}
+					
+					// Если авторизация успешна - перенаправляем на нужный ресурс
+					$resourceId = $tempLink->get('resource_id');
+					$this->modx->sendRedirect($this->modx->makeUrl($resourceId, '', [], 'full'));
+					return true;
+					
+				} catch (\Exception $e) {
+					$this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccess] Исключение при авторизации: ' . $e->getMessage());
+					return false;
+				}
     }
 
     /**
-     * Деактивирует временную ссылку (при выходе пользователя, например)
+     * Освобождаем временную ссылку (при выходе пользователя)
+		 * 
+		 * @param $user modUser объект пользователя
+		 * @return array{success: bool, message: string} Результат
      */
-    public function deactivateLink() {
-        $currentUser = $this->modx->getUser();
-        
-        if (!$currentUser->isAuthenticated()) {
-            return false;
+    public function releaseLink($user) {
+        $currentUser = $user ?? $this->modx->getUser();
+
+        if (!$currentUser) {
+            return [
+                'success' => false,
+                'message' => 'Пользователь не определён!'
+            ];
         }
 
         $userId = $currentUser->get('id');
@@ -352,22 +388,31 @@ class UserLinkAccess {
 
         // Является ли пользователь временным
         if (strpos($username, 'client_') !== 0) {
-            return false;
+          return [
+              'success' => false,
+              'message' => 'Пользователь не относится к клиентам!'
+          ];
         }
 
-        // Находим и деактивируем ссылку
+        // Находим ссылку
         $tempLink = $this->modx->getObject('userlinkaccess\\UserLinkAccessLink', [
             'user_id' => $userId,
             'is_active' => 1,
         ]);
-
-        if ($tempLink) {
-            $tempLink->set('used', 0);
-            $tempLink->set('is_active', 0);
-            $tempLink->save();
+        if (!$tempLink) {
+          return [
+            'success' => false,
+            'message' => 'Ссылка не найдена!'
+          ];
         }
+        // $tempLink->set('used', '');
+        // $tempLink->set('is_active', 0);
+        // $tempLink->save();
 
-        return true;
+        return [
+          'success' => true,
+          'message' => 'Успешно).'
+        ];
     }
 
     /**
@@ -382,18 +427,19 @@ class UserLinkAccess {
 
         $cleanedCount = 0;
         foreach ($expiredLinks as $link) {
+            $this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_INFO, '[UserLinkAccess cleanup] Найдена устаревшая активная ссылка: ' . $link->get('hash'));
             $userId = $link->get('user_id');
-            
-            // Деактивируем ссылку
-            $link->set('is_active', 0);
-            $link->save();
             
             // Удаляем пользователя
             $user = $this->modx->getObject('MODX\Revolution\modUser', $userId);
+            
             if ($user) {
               // Вызываем хук, если он указан в настройках и существует сниппет
               $deleteHook = $this->config['deleteLinkHook'];
-              if ($this->modx->getObject('MODX\Revolution\modSnippet', ['name' => $deleteHook])) {
+
+              $this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_INFO, '[UserLinkAccess cleanup] Запускается хук удаления: ' . $deleteHook . ' ...');
+              
+              if ($hook = $this->modx->getObject('MODX\Revolution\modSnippet', ['name' => $deleteHook])) {
                 $this->modx->runSnippet($deleteHook, [
                   'resourceId' => $link->get('resource_id'),
                   'userId' => $userId,
@@ -405,15 +451,20 @@ class UserLinkAccess {
               //     'userId' => $userId,
               //   ]);
               // }
-                
+              $this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_INFO, '[UserLinkAccess cleanup] ... успешно! Удаляется временный пользователь: ' . $userId);
+
               // Удаляем пользователя
               $user->remove();
               
               $cleanedCount++;
             }
+            // Деактивируем ссылку
+            $link->set('is_active', 0);
+            $link->save();
+            
         }
         
-        $this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_INFO, '[UserLinkAccess] Очищено ' . $cleanedCount . ' устаревших ссылок и пользователей');
+        $this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_INFO, '[UserLinkAccess cleanup] Очищено ' . $cleanedCount . ' устаревших ссылок и пользователей.');
     }
 
     /**

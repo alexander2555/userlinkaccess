@@ -10,11 +10,11 @@ use MODX\Revolution\modSnippet;
 $snippets = [];
 
 // Основной сниппет
-$snippetcode = getSnippetContent($sources['core'] . 'elements/snippets/userlinkaccess.snippet.php');
+$snippetcode = getSnippetContent($sources['core'] . 'elements/snippets/generate.snippet.php');
 
 $snippet = $modx->newObject(modSnippet::class);
 $snippet->fromArray([
-    'name' => 'UserLinkAccessSnippet',
+    'name' => 'UserLinkAccessGenerate',
     'description' => 'Сниппет для генерации временной ссылки',
     'snippet' => $snippetcode,
     'category' => 0,
@@ -39,6 +39,19 @@ $properties = [
 ];
 
 $snippet->setProperties($properties);
+
+$snippets[] = $snippet;
+
+// Сниппет для вывода спска активных ссылок
+$snippetcode = getSnippetContent($sources['core'] . 'elements/snippets/getactivelinks.snippet.php');
+
+$snippet = $modx->newObject(modSnippet::class);
+$snippet->fromArray([
+    'name' => 'UserLinkAccessGetActiveLinks',
+    'description' => 'Сниппет для вывода спска активных ссылок',
+    'snippet' => $snippetcode,
+    'category' => 0,
+], '', true, true);
 
 $snippets[] = $snippet;
 

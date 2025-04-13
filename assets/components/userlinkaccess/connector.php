@@ -8,14 +8,17 @@
 if (isset($_SERVER['MODX_BASE_PATH'])) {
 	define('MODX_BASE_PATH', $_SERVER['MODX_BASE_PATH']);
 }
-elseif (file_exists(dirname(__FILE__, 4) . '/core')) {
+elseif (file_exists(dirname(__FILE__, 2) . '/config.core.php')) {
+	define('MODX_BASE_PATH', dirname(__FILE__, 2) . '/');
+}
+elseif (file_exists(dirname(__FILE__, 3) . '/config.core.php')) {
+	define('MODX_BASE_PATH', dirname(__FILE__, 3) . '/');
+}
+elseif (file_exists(dirname(__FILE__, 4) . '/config.core.php')) {
 	define('MODX_BASE_PATH', dirname(__FILE__, 4) . '/');
 }
-elseif (file_exists(dirname(__FILE__, 5) . '/core')) {
-	define('MODX_BASE_PATH', dirname(__FILE__, 5) . '/');
-}
 else {
-    die('Ошибка: Не удалось определить MODX_BASE_PATH');
+  $modx->log(modX::LOG_LEVEL_ERROR, '[UserLinkAccess connector] Unable to locate core path!');
 }
 require_once MODX_BASE_PATH . 'config.core.php';
 require_once MODX_CORE_PATH . 'vendor/autoload.php';

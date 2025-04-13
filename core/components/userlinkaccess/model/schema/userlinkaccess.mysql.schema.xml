@@ -8,7 +8,7 @@
         <field key="created_at" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" />
         <field key="expires_at" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" />
         <field key="is_active" dbtype="tinyint" precision="1" attributes="unsigned" phptype="integer" null="false" default="1" />
-        <field key="used" dbtype="tinyint" precision="1" attributes="unsigned" phptype="integer" null="false" default="0" />
+        <field key="used" dbtype="varchar" precision="45" phptype="string" null="false" default="" />
 
         <index alias="hash" name="hash" primary="false" unique="true" type="BTREE">
             <column key="hash" length="" collation="A" null="false" />

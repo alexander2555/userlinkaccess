@@ -6,20 +6,20 @@ ini_set('error_reporting', E_ALL);
 // Определяем пакет
 define('PKG_NAME', 'UserLinkAccess');
 define('PKG_NAME_LOWER', strtolower(PKG_NAME));
-define('PKG_VERSION', '0.0.1');
+define('PKG_VERSION', '0.0.2');
 define('PKG_RELEASE', 'alpha');
 
 // Определяем пути
 if (isset($_SERVER['MODX_BASE_PATH'])) {
 	define('MODX_BASE_PATH', $_SERVER['MODX_BASE_PATH']);
 }
-elseif (file_exists(dirname(__FILE__, 2) . '/core')) {
+elseif (file_exists(dirname(__FILE__, 2) . '/config.core.php')) {
 	define('MODX_BASE_PATH', dirname(__FILE__, 2) . '/');
 }
-elseif (file_exists(dirname(__FILE__, 3) . '/core')) {
+elseif (file_exists(dirname(__FILE__, 3) . '/config.core.php')) {
 	define('MODX_BASE_PATH', dirname(__FILE__, 3) . '/');
 }
-elseif (file_exists(dirname(__FILE__, 4) . '/core')) {
+elseif (file_exists(dirname(__FILE__, 4) . '/config.core.php')) {
 	define('MODX_BASE_PATH', dirname(__FILE__, 4) . '/');
 }
 else {
@@ -34,14 +34,22 @@ if (!defined('MODX_CONFIG_KEY')) {
     define('MODX_CONFIG_KEY', 'config');
 }
 if (!defined('MODX_CORE_PATH')) {
-    define('MODX_CORE_PATH', MODX_BASE_PATH . 'core/');
+  if (file_exists(dirname(__FILE__, 2) . '/core')) {
+  	define('MODX_CORE_PATH', dirname(__FILE__, 2) . '/');
+  }
+  elseif (file_exists(dirname(__FILE__, 3) . '/core')) {
+  	define('MODX_CORE_PATH', dirname(__FILE__, 3) . '/');
+  }
+  elseif (file_exists(dirname(__FILE__, 4) . '/core')) {
+  	define('MODX_CORE_PATH', dirname(__FILE__, 4) . '/');
+  }
 }
 define('MODX_MANAGER_PATH', MODX_BASE_PATH . 'manager/');
 define('MODX_CONNECTORS_PATH', MODX_BASE_PATH . 'connectors/');
 define('MODX_ASSETS_PATH', MODX_BASE_PATH . 'assets/');
 
-define('MODX_BASE_URL','/modx/');
-define('MODX_CORE_URL', MODX_BASE_URL . 'core/');
+define('MODX_BASE_URL','/');
+// define('MODX_CORE_URL', MODX_BASE_URL . 'core/');
 define('MODX_MANAGER_URL', MODX_BASE_URL . 'manager/');
 define('MODX_CONNECTORS_URL', MODX_BASE_URL . 'connectors/');
 define('MODX_ASSETS_URL', MODX_BASE_URL . 'assets/');

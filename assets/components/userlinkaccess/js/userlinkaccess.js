@@ -30,17 +30,17 @@
 
           // Индикатор загрузки
           resultContainer.innerHTML = `
-            <div class="d-flex justify-content-center">
+            <div class="d-flex justify-content-center my-2">
               <div class="spinner-border" role="status">
                 <span class="visually-hidden">Loading...</span>
               </div>
             </div>
           `
+          formContainer.style.display = 'none'
 
           // Генерация ссылки и создание пользователя через AJAX-коннектор
           this.generateLink(resourceId, lifetime, response => {
             if (response.success) {
-              formContainer.style.display = 'none'
               this.displayLink(resultContainer, response.object.link);
               
               document.dispatchEvent(
@@ -52,7 +52,7 @@
               )
             } else {
               resultContainer.innerHTML = `
-                <div class="card border-danger p-3">
+                <div class="card border-danger p-2">
                   <div class="text-danger fw-semibold small">${response.message || 'Ошибка генерации ссылки'}</div>
                 </div>
               `
@@ -63,11 +63,16 @@
 
       // Обработка нажатия на кнопку копирования
       document.addEventListener('click', e => {
-        const isTargetBtn = e.target.getAttribute('id') === 'userlinkaccess-copy-btn' || (e.target.closest('button') && e.target.closest('button').getAttribute('id') === 'userlinkaccess-copy-btn')
+        const target = e.target.closest('button[data-target]')
+        if (!target) {
+          return
+        }
+        const dataTarget = target.getAttribute('data-target')
+        const isTargetBtn = dataTarget.indexOf('userlinkaccess-link') === 0
         if (isTargetBtn) {
           e.preventDefault()
-          const btnCopy = document.getElementById('userlinkaccess-copy-btn')
-          const inputLink = document.getElementById('userlinkaccess-link')
+          const btnCopy = target //document.getElementById('userlinkaccess-copy-btn')
+          const inputLink = document.getElementById(dataTarget)
           const linkText = inputLink.value
           if (linkText)
             this.copyToClipboard(linkText, btnCopy)
@@ -148,13 +153,12 @@
      * @param {string} link Сгенерированная ссылка
      */
     displayLink(container, link) {
-      // Создаем контейнер для ссылки
       const html = `
-        <div class="card border-success p-3">
+        <div class="card border-success p-2">
           <div class="fw-bold mb-2">Ссылка для временного доступа:</div>
           <div class="input-group mb-2">
             <input id="userlinkaccess-link" type="text" class="form-control" value="${link}" readonly>
-            <button id="userlinkaccess-copy-btn" class="btn btn-primary" type="button">
+            <button class="btn btn-primary" type="button" data-target="userlinkaccess-link">
               <i class="bi bi-copy"></i>
             </button>
           </div>
@@ -173,7 +177,7 @@
     async copyToClipboard(text, button) {
       const copyBtnHtml = '<i class="bi bi-check"></i>'
       const prevBtnHtml = button.innerHTML
-      console.log(prevBtnHtml)
+      // console.log(prevBtnHtml)
       const btnCopyState = (readyHtml = copyBtnHtml) => {// деактивируем кнопку и меняем иконку на галочку
         button.disabled = true
         button.innerHTML = readyHtml

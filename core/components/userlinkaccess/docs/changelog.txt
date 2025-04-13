@@ -9,5 +9,15 @@ Changelog for UserLinkAccess
 - Plugin for handle link-access, snippets, hooks
 - Frontend: tpl, js, css
 
+0.0.1-alpha2 - 2025-04-13
 
-
+- Modx core change placement fixes
+- Reinstall fix
+- Initial issues fixes
+- Automatic ACL creation for context and resource groups
+- Optional automatic ACL cleaning for link deactivation and user remove - todo
+- Add IP-address access control
+- Improved error handling and logging
+- Add getting active links snippet
+- Some frontend fixes
+- Documentation updates

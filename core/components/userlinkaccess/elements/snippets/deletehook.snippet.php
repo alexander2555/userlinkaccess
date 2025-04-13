@@ -14,9 +14,9 @@ $resourceId = $scriptProperties['resourceId'] ?? null;
 $userId = $scriptProperties['userId'] ?? null;
 
 if (!$resourceId || !$userId) {
-    $modx->log(modX::LOG_LEVEL_ERROR, '[UserLinkAccessCreateHook] Не переданы обязательные параметры ресурса и пользователя!');
+    $modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccessCreateHook] Не переданы обязательные параметры ресурса и пользователя!');
     return false;
 }
 
-$modx->log(modX::LOG_LEVEL_INFO, '[UserLinkAccessDeleteHook] Ссылка удалена для ресурса #' . $resourceId . ', пользователя #' . $userId);
+$modx->log(\MODX\Revolution\modX::LOG_LEVEL_INFO, '[UserLinkAccessDeleteHook] Ссылка удалена для ресурса #' . $resourceId . ', пользователя #' . $userId);
 return true;

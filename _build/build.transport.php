@@ -18,18 +18,18 @@ require_once 'build.config.php';
 // echo PKG_NAME_LOWER;
 
 // Определяем пути
-$root = dirname(__FILE__, 2) . '/';
+$root = MODX_BASE_PATH;
 $sources = array(
-  'root' => $root,
-  'build' => $root . '_build/',
-  'data' => $root . '_build/data/',
-  'resolvers' => $root . '_build/resolvers/',
-  'core' => $root . 'core/components/' . PKG_NAME_LOWER . '/',
-  'assets' => $root . 'assets/components/' . PKG_NAME_LOWER . '/',
-  'docs' => $root . 'core/components/' . PKG_NAME_LOWER . '/docs/',
-	'model' => $root . 'core/components/' . PKG_NAME_LOWER . '/model/',
-	'schema' => $root . 'core/components/' . PKG_NAME_LOWER . '/model/schema/',
-	'xml' => $root . 'core/components/' . PKG_NAME_LOWER . '/model/schema/'.PKG_NAME_LOWER.'.mysql.schema.xml',
+  'root' => MODX_BASE_PATH,
+  'build' => MODX_BASE_PATH . '_build/',
+  'data' => MODX_BASE_PATH . '_build/data/',
+  'resolvers' => MODX_BASE_PATH . '_build/resolvers/',
+  'core' => MODX_CORE_PATH . 'components/' . PKG_NAME_LOWER . '/',
+  'assets' => MODX_BASE_PATH . 'assets/components/' . PKG_NAME_LOWER . '/',
+  'docs' => MODX_CORE_PATH . 'components/' . PKG_NAME_LOWER . '/docs/',
+	'model' => MODX_CORE_PATH . 'components/' . PKG_NAME_LOWER . '/model/',
+	'schema' => MODX_CORE_PATH . 'components/' . PKG_NAME_LOWER . '/model/schema/',
+	'xml' => MODX_CORE_PATH . 'components/' . PKG_NAME_LOWER . '/model/schema/'.PKG_NAME_LOWER.'.mysql.schema.xml',
 );
 
 require_once MODX_CORE_PATH . 'vendor/autoload.php';
@@ -47,9 +47,9 @@ $manager = $modx->getManager();
 $generator = $manager->getGenerator();
 
 // Удаляем старую модель, если присутствует
-$mysql_dir = $sources['model'] . PKG_NAME_LOWER . '/mysql';
-if (!file_exists($mysql_dir)) {
-    rrmdir($mysql_dir);
+$mysql_dir = $sources['model'] . PKG_NAME_LOWER;
+if (file_exists($mysql_dir)) {
+  rrmdir($mysql_dir);
 }
 
 // Генерируем новую модель
