@@ -4,7 +4,7 @@ UserLinkAccess
 
 Author: Alexander Mamontov <alexander.m.190180@hotmail.com>
 
-UserLinkAccess is a component for MODX 3.x that allows you to grant temporary link access to a resource page.
+UserLinkAccess is a component for MODX 3 that allows you to grant temporary link access to a resource page.
 
 Installation
 
@@ -17,7 +17,9 @@ Usage
 
 To directly generate an access link you can use snippet:
 
-[[UserLinkAccess? &resourceId=`10` &lifetime=`3600`]]
+[[UserLinkAccessGenerate? &resourceId=`10` &lifetime=`3600`]]
+
+Also you can use [[UserLinkAccessGetActiveLinks]] snippet for output active links.
 
 Link generating form:
 

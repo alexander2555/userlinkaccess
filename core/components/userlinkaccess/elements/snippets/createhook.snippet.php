@@ -20,5 +20,5 @@ if (!$resourceId || !$userId) {
     return false;
 }
 
-$modx->log(\MODX\Revolution\modX::LOG_LEVEL_INFO, '[UserLinkAccessCreateHook] Ссылка создана для ресурса #' . $resourceId . ', пользователя #' . $userId, ', URL ', . $url);
+$modx->log(\MODX\Revolution\modX::LOG_LEVEL_INFO, '[UserLinkAccessCreateHook] Ссылка создана для ресурса #' . $resourceId . ', пользователя #' . $userId);
 return true;

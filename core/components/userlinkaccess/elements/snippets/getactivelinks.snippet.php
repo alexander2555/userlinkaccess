@@ -36,11 +36,11 @@ if (count($links)) {
         $link_user = $modx->getObject('modUser', $link->user_id);
         $output .= '
           <label for="userlinkaccess-link-' . $key  . '">
-            <span class="badge rounded-pill">' . $link_user->getOne('Profile')->get('fullname')  . '</span>
+            <span class="badge rounded-pill text-primary">' . $link_user->getOne('Profile')->get('fullname')  . '</span>
           </label>
           <div class="input-group mb-2">
             <input id="userlinkaccess-link-' . $key  . '" type="text" class="form-control" value="'. $sessionUrl . '" readonly/>
-            <button class="btn btn-primary" type="button" data-target="userlinkaccess-link-' . $key  . '" title="Скопировать ссылку">
+            <button class="btn btn-primary" type="button" data-target="userlinkaccess-link-' . $key  . '" title="Скопировать ссылку" data-bs-toggle="tooltip">
               <i class="bi bi-copy"></i>
             </button>
           </div>

@@ -257,7 +257,6 @@ class UserLinkAccess {
         $usedIp = $tempLink->get('used');
         if (!empty($usedIp)) {
             $currentIp = $requestInfo['IP'];
-            
             // Если в сохраненном IP есть маска *.
             if (strpos($usedIp, '.*') !== false) {
                 $usedIpPrefix = str_replace('.*', '', $usedIp);
@@ -272,9 +271,13 @@ class UserLinkAccess {
                 return false;
             }
         }
+        if ($requestInfo['IP'] === 'unknown') {
+          $this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccess] IP-адрес не определен!');
+          return false;
+        }
         // Проверяем User-Agent на боты и не-браузеры
         $userAgent = $requestInfo['User-Agent'];
-        if (preg_match('/(bot|crawler|spider|wget|curl|postman|python|java|php|ruby|unknown)/i', $userAgent)) {
+        if (preg_match('/(bot|crawler|spider|wget|curl|postman|python|java|php|ruby|whatsapp|unknown)/i', $userAgent)) {
             $this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccess] Попытка доступа по ссылке не из браузера: ' . $userAgent);
             return false;
         }

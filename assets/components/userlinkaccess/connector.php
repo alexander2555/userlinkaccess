@@ -18,7 +18,7 @@ elseif (file_exists(dirname(__FILE__, 4) . '/config.core.php')) {
 	define('MODX_BASE_PATH', dirname(__FILE__, 4) . '/');
 }
 else {
-  $modx->log(modX::LOG_LEVEL_ERROR, '[UserLinkAccess connector] Unable to locate core path!');
+  $modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccess connector] Unable to locate core path!');
 }
 require_once MODX_BASE_PATH . 'config.core.php';
 require_once MODX_CORE_PATH . 'vendor/autoload.php';
@@ -60,15 +60,15 @@ if (file_exists($csrfhelper_path)) {
   } catch (\modmore\CSRFHelper\InvalidTokenException $e) {
       $modx->lexicon->load('csrfhelper:default');
       $error = $modx->lexicon('csrfhelper.error');
-      $modx->log(modX::LOG_LEVEL_ERROR, '[csrfhelper] Received an invalid CSRF token. ' . $e->getMessage());
+      $modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[csrfhelper] Received an invalid CSRF token. ' . $e->getMessage());
       echo json_encode(['success' => false, 'message' => $error]);
       exit;
   }
 } else { // Если CSRFHelper не установлен
-    $modx->log(modX::LOG_LEVEL_ERROR, '[UserLinkAccess Connector] CSRFHelper не установлен. Попытка проверить токен через сессию...');
+    $modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccess Connector] CSRFHelper не установлен. Попытка проверить токен через сессию...');
     
     if (!isset($_SESSION['csrf_token']) || $csrfToken !== $_SESSION['csrf_token']) {
-        $modx->log(modX::LOG_LEVEL_ERROR, '[UserLinkAccess Connector] Недействительный CSRF-токен');
+        $modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccess Connector] Недействительный CSRF-токен');
         echo json_encode(['success' => false, 'message' => 'Недействительный CSRF-токен']);
         exit;
     }
@@ -92,12 +92,12 @@ switch ($action) {
     try {
         $response = $modx->runProcessor('generate', $requestData, ['processors_path' => $processorsPath]);
         if ($response->isError()) {
-            $modx->log(modX::LOG_LEVEL_ERROR, '[UserLinkAccess Connector] Ошибка процессора: ' . $response->getMessage());
+            $modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccess Connector] Ошибка процессора: ' . $response->getMessage());
             echo json_encode(['success' => false, 'message' => $response->getMessage()]);
             exit;
         }
     } catch (Exception $e) {
-        $modx->log(modX::LOG_LEVEL_ERROR, '[UserLinkAccess Connector] Исключение: ' . $e->getMessage());
+        $modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR, '[UserLinkAccess Connector] Исключение: ' . $e->getMessage());
         echo json_encode(['success' => false, 'message' => 'Внутренняя ошибка при запуске процессора: ' . $e->getMessage()]);
         exit;
     }
